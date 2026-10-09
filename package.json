@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check server.mjs && node --check dist/app.js && node tools/validate-template.mjs"
+    "check": "node --check server.mjs && node --check dist/app.js && node tools/validate-template.mjs && node tools/validate-local-library.mjs"
   },
   "engines": {
     "node": ">=20"

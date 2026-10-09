@@ -22,6 +22,18 @@ PaperCase intentionally does not prescribe how resources are generated. The fram
 
 Paper resources imported through the browser stay in that browser's local storage. Files placed under `dist/papers/` are ignored by Git by default.
 
+For a persistent local library, place resource files under `dist/papers/` and create an ignored `dist/papers/library.json` manifest:
+
+```json
+{
+  "resources": [
+    "./example-paper/paper-resource.json"
+  ]
+}
+```
+
+PaperCase loads this manifest at startup and refreshes matching browser-local resources by stable paper ID. Reading progress and discussions remain separate and are preserved. The manifest and its papers are excluded from Git, so this local archive is not published with the framework.
+
 ## Optional model discussion
 
 Open **Settings → Model** in the browser and enter:

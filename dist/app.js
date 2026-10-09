@@ -148,6 +148,40 @@ async function importPaper(file) {
   }
 }
 
+async function loadLocalLibrary() {
+  try {
+    const response = await fetch("./papers/library.json", { cache: "no-store" });
+    if (!response.ok) return 0;
+    const manifest = await response.json();
+    const entries = Array.isArray(manifest) ? manifest : manifest.resources;
+    if (!Array.isArray(entries)) return 0;
+    let loaded = 0;
+    for (const entry of entries) {
+      try {
+        const resource = typeof entry === "string"
+          ? await fetch(new URL(entry, response.url), { cache: "no-store" }).then(result => {
+              if (!result.ok) throw new Error(`HTTP ${result.status}`);
+              return result.json();
+            })
+          : entry;
+        const next = validatePaper(resource);
+        resources[next.id] = next;
+        loaded += 1;
+      } catch (error) {
+        console.warn("PaperCase skipped a local resource:", error);
+      }
+    }
+    if (loaded) {
+      localStorage.setItem(KEYS.resources, JSON.stringify(resources));
+      if (!resources[activePaperId]) activePaperId = Object.keys(resources)[0];
+      localStorage.setItem(KEYS.activePaper, activePaperId);
+      paper = resources[activePaperId] || null;
+      elements["import-status"].textContent = `Loaded ${loaded} paper${loaded === 1 ? "" : "s"} from the local archive.`;
+    }
+    return loaded;
+  } catch { return 0; }
+}
+
 function renderLibrary() {
   const entries = Object.values(resources);
   elements["paper-select"].innerHTML = entries.length
@@ -363,4 +397,9 @@ elements["open-settings"].addEventListener("click", openSettings);
 elements["settings-form"].addEventListener("submit", saveSettings);
 elements["clear-settings"].addEventListener("click", () => { localStorage.removeItem(KEYS.model); sessionStorage.removeItem(KEYS.modelKey); elements["model-endpoint"].value = ""; elements["model-id"].value = ""; elements["model-key"].value = ""; elements["settings-status"].textContent = "Model settings cleared."; render(); });
 
-render();
+async function initialize() {
+  await loadLocalLibrary();
+  render();
+}
+
+initialize();
