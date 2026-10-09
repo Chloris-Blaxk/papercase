@@ -1,0 +1,40 @@
+{
+  "$schema": "../paper-resource.schema.json",
+  "version": 1,
+  "id": "replace-with-a-stable-id",
+  "title": "Paper title",
+  "titleZh": "论文标题",
+  "authors": "Author names",
+  "year": 2026,
+  "body": [
+    {
+      "id": "section-01",
+      "sectionNumber": "1",
+      "titleEn": "Section title",
+      "titleZh": "章节标题",
+      "items": [
+        {
+          "type": "pair",
+          "id": "paragraph-001",
+          "en": "Original paragraph.",
+          "zh": "对应译文。"
+        },
+        {
+          "type": "equation",
+          "id": "equation-001",
+          "tex": "f(x) = x^2"
+        },
+        {
+          "type": "asset",
+          "id": "figure-001",
+          "kind": "Figure",
+          "number": "1",
+          "src": "./papers/replace-with-a-stable-id/figure-001.png",
+          "captionEn": "Original caption.",
+          "captionZh": "图注译文。"
+        }
+      ]
+    }
+  ],
+  "appendices": []
+}

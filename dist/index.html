@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A local-first bilingual paper reading framework." />
+  <title>PaperCase</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#reader">Skip to reader</a>
+  <header class="topbar">
+    <a class="brand" href="#"><span>PC</span><div><strong>PaperCase</strong><small>LOCAL-FIRST PAPER READER</small></div></a>
+    <div class="top-actions">
+      <span id="progress-summary">No paper loaded</span>
+      <button id="open-settings" class="quiet-button" type="button">Settings</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <aside class="sidebar">
+      <section class="library-card">
+        <span class="eyebrow">LOCAL LIBRARY</span>
+        <h1>Your papers</h1>
+        <p>Imported resources stay in this browser.</p>
+        <label class="library-select">Active paper<select id="paper-select"><option value="">No paper loaded</option></select></label>
+        <label class="import-button">Import resource JSON<input id="paper-import" type="file" accept="application/json,.json" /></label>
+        <p id="import-status" class="status" role="status"></p>
+      </section>
+      <nav aria-label="Paper sections">
+        <div class="nav-heading"><span>PAPER MAP</span><small id="section-count">0 sections</small></div>
+        <ol id="section-map"></ol>
+      </nav>
+      <section class="role-card">
+        <span class="eyebrow">ROLE TEMPLATES</span>
+        <dl><div><dt id="navigator-name">Navigator</dt><dd>explains in paper order</dd></div><div><dt id="reviewer-name">Reviewer</dt><dd>asks for evidence</dd></div><div><dt id="reader-name">Reader</dt><dd>always controlled by you</dd></div></dl>
+      </section>
+    </aside>
+
+    <section id="reader" class="reader" tabindex="-1">
+      <div id="empty-state" class="empty-state">
+        <span class="empty-mark">◇</span>
+        <p class="eyebrow">EMPTY CASE FILE</p>
+        <h2>Import a PaperCase resource to begin.</h2>
+        <p>This public framework ships without papers, translations, figures, or private notes.</p>
+        <label class="primary-button">Choose resource JSON<input class="mirror-import" type="file" accept="application/json,.json" /></label>
+      </div>
+
+      <article id="paper-view" hidden>
+        <header class="paper-header">
+          <div><span id="reader-progress" class="eyebrow"></span><h2 id="chapter-title"></h2><p id="chapter-title-en" lang="en"></p></div>
+          <div class="section-seal"><strong id="section-number"></strong><span>PAPER SECTION</span></div>
+        </header>
+
+        <section class="guide-note"><span id="guide-badge">Navigator</span><p id="guide-copy"></p></section>
+
+        <section class="source-board">
+          <header><div><span class="eyebrow">PRIMARY SOURCE · PAPER ORDER</span><h3>Original × Translation</h3></div><small>Paper coordinates remain separate from reading chunks.</small></header>
+          <div id="paper-location" class="paper-location"></div>
+          <div id="paper-flow" class="paper-flow"></div>
+        </section>
+
+        <footer class="reader-actions">
+          <button id="previous-section" class="quiet-button" type="button">Previous</button>
+          <button id="next-section" class="primary-button" type="button">Mark read and continue</button>
+        </footer>
+      </article>
+    </section>
+
+    <aside id="discussion" class="discussion" hidden>
+      <header><span class="eyebrow">DISCUSSION</span><h2><span id="discussion-reader">Reader</span> × <span id="discussion-guide">Navigator</span></h2></header>
+      <p class="boundary">The model may read the loaded paper. It must not invent actions, beliefs, or consent for the human reader.</p>
+      <div id="chat-context" class="chat-context"></div>
+      <div id="chat-thread" class="chat-thread" aria-live="polite"></div>
+      <form id="chat-form">
+        <label for="chat-input">Ask about the current passage</label>
+        <textarea id="chat-input" rows="4" placeholder="Ask for an explanation, evidence, or connection…"></textarea>
+        <div class="chat-actions"><span id="chat-status">Configure a model to enable discussion.</span><button class="primary-button" type="submit">Send</button></div>
+      </form>
+    </aside>
+  </main>
+
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form method="dialog" class="dialog-bar"><div><span class="eyebrow">LOCAL SETTINGS</span><h2>Model and roles</h2></div><button value="cancel" class="quiet-button">Close</button></form>
+    <form id="settings-form" class="settings-form">
+      <section>
+        <h3>Model</h3>
+        <p>No provider or credential is bundled. The key remains in session storage and is never written to disk by PaperCase.</p>
+        <label>Chat-completions endpoint<input id="model-endpoint" type="url" placeholder="https://provider.example/v1/chat/completions" /></label>
+        <label>Model ID<input id="model-id" type="text" placeholder="your-model-id" /></label>
+        <label>API key<input id="model-key" type="password" autocomplete="off" placeholder="Optional for a local endpoint" /></label>
+      </section>
+      <section>
+        <h3>Role templates</h3>
+        <div class="role-grid">
+          <label>Human role name<input id="role-reader" type="text" value="Reader" /></label>
+          <label>Guide role name<input id="role-navigator" type="text" value="Navigator" /></label>
+          <label>Review role name<input id="role-reviewer" type="text" value="Reviewer" /></label>
+        </div>
+        <label>Guide instruction<textarea id="role-instruction" rows="5"></textarea></label>
+      </section>
+      <div class="settings-actions"><button id="clear-settings" class="danger-button" type="button">Clear model settings</button><button class="primary-button" type="submit">Save locally</button></div>
+      <p id="settings-status" class="status" role="status"></p>
+    </form>
+  </dialog>
+</body>
+</html>

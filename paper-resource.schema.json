@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/papercase/paper-resource.schema.json",
+  "title": "PaperCase resource",
+  "type": "object",
+  "required": ["version", "id", "title", "body"],
+  "properties": {
+    "version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,80}$" },
+    "title": { "type": "string", "minLength": 1 },
+    "titleZh": { "type": "string" },
+    "authors": { "type": "string" },
+    "year": { "type": ["integer", "string"] },
+    "body": { "$ref": "#/$defs/chapters" },
+    "appendices": { "$ref": "#/$defs/chapters" }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "chapters": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/chapter" }
+    },
+    "chapter": {
+      "type": "object",
+      "required": ["id", "titleEn", "items"],
+      "properties": {
+        "id": { "type": "string" },
+        "sectionNumber": { "type": ["string", "null"] },
+        "titleEn": { "type": "string" },
+        "titleZh": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/item" }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "enum": ["pair", "equation", "asset"] },
+        "id": { "type": "string" },
+        "en": { "type": "string" },
+        "zh": { "type": "string" },
+        "tex": { "type": "string" },
+        "kind": { "type": "string" },
+        "number": { "type": ["string", "integer"] },
+        "src": { "type": "string" },
+        "captionEn": { "type": "string" },
+        "captionZh": { "type": "string" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "pair" } } }, "then": { "required": ["en", "zh"] } },
+        { "if": { "properties": { "type": { "const": "equation" } } }, "then": { "required": ["tex"] } },
+        { "if": { "properties": { "type": { "const": "asset" } } }, "then": { "required": ["src"] } }
+      ],
+      "additionalProperties": true
+    }
+  }
+}
