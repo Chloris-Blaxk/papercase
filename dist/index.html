@@ -12,49 +12,49 @@
   <script defer src="./app.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#reader">Skip to reader</a>
+  <a class="skip-link" href="#reader" data-zh="跳到正文">Skip to reader</a>
   <header class="topbar">
-    <a class="brand" href="#"><span>PC</span><div><strong>PaperCase</strong><small>LOCAL-FIRST PAPER READER</small></div></a>
+    <a class="brand" href="#"><span>PC</span><div><strong>PaperCase</strong><small data-zh="本地优先论文阅读器">LOCAL-FIRST PAPER READER</small></div></a>
     <div class="top-actions">
       <span id="progress-summary">No paper loaded</span>
-      <button id="open-settings" class="quiet-button" type="button">Settings</button>
+      <button id="open-settings" class="quiet-button" type="button" data-zh="设置">Settings</button>
     </div>
   </header>
 
   <main class="shell">
     <aside class="sidebar">
       <section class="library-card">
-        <span class="eyebrow">LOCAL LIBRARY</span>
-        <h1>Your papers</h1>
-        <p>Imported resources stay in this browser.</p>
-        <label class="library-select">Active paper<select id="paper-select"><option value="">No paper loaded</option></select></label>
-        <label class="import-button">Import resource JSON<input id="paper-import" type="file" accept="application/json,.json" /></label>
+        <span class="eyebrow" data-zh="本地档案库">LOCAL LIBRARY</span>
+        <h1 data-zh="我的论文">Your papers</h1>
+        <p data-zh="导入的资源只保存在这台设备上。">Imported resources stay in this browser.</p>
+        <label class="library-select"><span data-zh="当前论文">Active paper</span><select id="paper-select"><option value="">No paper loaded</option></select></label>
+        <label class="import-button"><span data-zh="导入论文资源">Import resource JSON</span><input id="paper-import" type="file" accept="application/json,.json" /></label>
         <p id="import-status" class="status" role="status"></p>
       </section>
       <nav aria-label="Paper sections">
-        <div class="nav-heading"><span>PAPER MAP</span><small id="section-count">0 sections</small></div>
+        <div class="nav-heading"><span data-zh="论文目录">PAPER MAP</span><small id="section-count">0 sections</small></div>
         <ol id="section-map"></ol>
       </nav>
       <section class="role-card">
-        <span class="eyebrow">ROLE TEMPLATES</span>
-        <dl><div><dt id="navigator-name">Navigator</dt><dd>explains in paper order</dd></div><div><dt id="reviewer-name">Reviewer</dt><dd>asks for evidence</dd></div><div><dt id="reader-name">Reader</dt><dd>always controlled by you</dd></div></dl>
+        <span class="eyebrow" data-zh="阅读角色">ROLE TEMPLATES</span>
+        <dl><div><dt id="navigator-name">Navigator</dt><dd data-zh="按论文顺序引导">explains in paper order</dd></div><div><dt id="reviewer-name">Reviewer</dt><dd data-zh="负责核对证据">asks for evidence</dd></div><div><dt id="reader-name">Reader</dt><dd data-zh="始终由你控制">always controlled by you</dd></div></dl>
       </section>
     </aside>
 
     <section id="reader" class="reader" tabindex="-1">
       <div id="empty-state" class="empty-state">
         <span class="empty-mark">◇</span>
-        <p class="eyebrow">EMPTY CASE FILE</p>
-        <h2>Import a PaperCase resource to begin.</h2>
-        <p>This public framework ships without papers, translations, figures, or private notes.</p>
-        <label class="primary-button">Choose resource JSON<input class="mirror-import" type="file" accept="application/json,.json" /></label>
+        <p class="eyebrow" data-zh="档案库为空">EMPTY CASE FILE</p>
+        <h2 data-zh="导入 PaperCase 资源以开始阅读。">Import a PaperCase resource to begin.</h2>
+        <p data-zh="公开框架不附带论文、译文、图表或私人笔记。">This public framework ships without papers, translations, figures, or private notes.</p>
+        <label class="primary-button"><span data-zh="选择论文资源">Choose resource JSON</span><input class="mirror-import" type="file" accept="application/json,.json" /></label>
       </div>
 
       <article id="paper-view" hidden>
         <section class="paper-dossier" aria-labelledby="paper-title">
           <div class="dossier-heading">
             <div>
-              <span class="eyebrow">PUBLICATION RECORD · 发表信息</span>
+              <span class="eyebrow" data-zh="论文元信息 · PUBLICATION RECORD">PUBLICATION RECORD · 发表信息</span>
               <h2 id="paper-title"></h2>
               <p id="paper-title-translation" class="paper-title-translation"></p>
             </div>
@@ -62,10 +62,10 @@
           </div>
           <p id="paper-authors" class="paper-authors"></p>
           <dl class="metadata-grid">
-            <div><dt>Source · 来源</dt><dd id="publication-source"></dd></div>
-            <div><dt>Published · 发布时间</dt><dd id="publication-date"></dd></div>
-            <div><dt>Record · 收录类型</dt><dd id="publication-record"></dd></div>
-            <div><dt>Identifier · 标识</dt><dd id="publication-identifier"></dd></div>
+            <div><dt data-zh="文章来源 · SOURCE">Source · 来源</dt><dd id="publication-source"></dd></div>
+            <div><dt data-zh="发布时间 · PUBLISHED">Published · 发布时间</dt><dd id="publication-date"></dd></div>
+            <div><dt data-zh="收录类型 · RECORD">Record · 收录类型</dt><dd id="publication-record"></dd></div>
+            <div><dt data-zh="论文标识 · IDENTIFIER">Identifier · 标识</dt><dd id="publication-identifier"></dd></div>
           </dl>
           <div id="publication-links" class="publication-links"></div>
           <p id="metadata-warning" class="metadata-warning" hidden></p>
@@ -73,57 +73,57 @@
 
         <header class="paper-header">
           <div><span id="reader-progress" class="eyebrow"></span><h2 id="chapter-title"></h2><p id="chapter-title-en" lang="en"></p></div>
-          <div class="section-seal"><strong id="section-number"></strong><span>PAPER SECTION</span></div>
+          <div class="section-seal"><strong id="section-number"></strong><span data-zh="论文章节">PAPER SECTION</span></div>
         </header>
 
         <section class="guide-note"><span id="guide-badge">Navigator</span><p id="guide-copy"></p></section>
 
         <section class="source-board">
-          <header><div><span class="eyebrow">PRIMARY SOURCE · PAPER ORDER</span><h3>Original × Translation</h3></div><small>Paper coordinates remain separate from reading chunks.</small></header>
+          <header><div><span class="eyebrow" data-zh="论文原文 · 保持原顺序">PRIMARY SOURCE · PAPER ORDER</span><h3 data-zh="原文 × 译文">Original × Translation</h3></div><small data-zh="章节坐标与阅读分段相互独立。">Paper coordinates remain separate from reading chunks.</small></header>
           <div id="paper-location" class="paper-location"></div>
           <div id="paper-flow" class="paper-flow"></div>
         </section>
 
         <footer class="reader-actions">
-          <button id="previous-section" class="quiet-button" type="button">Previous</button>
+          <button id="previous-section" class="quiet-button" type="button" data-zh="上一节">Previous</button>
           <button id="next-section" class="primary-button" type="button">Mark read and continue</button>
         </footer>
       </article>
     </section>
 
     <aside id="discussion" class="discussion" hidden>
-      <header><span class="eyebrow">DISCUSSION</span><h2><span id="discussion-reader">Reader</span> × <span id="discussion-guide">Navigator</span></h2></header>
-      <p class="boundary">The model may read the loaded paper. It must not invent actions, beliefs, or consent for the human reader.</p>
+      <header><span class="eyebrow" data-zh="讨论">DISCUSSION</span><h2><span id="discussion-reader">Reader</span> × <span id="discussion-guide">Navigator</span></h2></header>
+      <p class="boundary" data-zh="模型可以读取已载入论文，但不得替你编造行动、信念或同意。">The model may read the loaded paper. It must not invent actions, beliefs, or consent for the human reader.</p>
       <div id="chat-context" class="chat-context"></div>
       <div id="chat-thread" class="chat-thread" aria-live="polite"></div>
       <form id="chat-form">
-        <label for="chat-input">Ask about the current passage</label>
-        <textarea id="chat-input" rows="4" placeholder="Ask for an explanation, evidence, or connection…"></textarea>
-        <div class="chat-actions"><span id="chat-status">Configure a model to enable discussion.</span><button class="primary-button" type="submit">Send</button></div>
+        <label for="chat-input" data-zh="针对当前段落提问">Ask about the current passage</label>
+        <textarea id="chat-input" rows="4" placeholder="Ask for an explanation, evidence, or connection…" data-placeholder-zh="让蓝解释、查证或联系全文……"></textarea>
+        <div class="chat-actions"><span id="chat-status">Configure a model to enable discussion.</span><button class="primary-button" type="submit" data-zh="发送">Send</button></div>
       </form>
     </aside>
   </main>
 
   <dialog id="settings-dialog" class="settings-dialog">
-    <form method="dialog" class="dialog-bar"><div><span class="eyebrow">LOCAL SETTINGS</span><h2>Model and roles</h2></div><button value="cancel" class="quiet-button">Close</button></form>
+    <form method="dialog" class="dialog-bar"><div><span class="eyebrow" data-zh="本地设置">LOCAL SETTINGS</span><h2 data-zh="模型与角色">Model and roles</h2></div><button value="cancel" class="quiet-button" data-zh="关闭">Close</button></form>
     <form id="settings-form" class="settings-form">
       <section>
-        <h3>Model</h3>
-        <p>No provider or credential is bundled. The key remains in session storage and is never written to disk by PaperCase.</p>
-        <label>Chat-completions endpoint<input id="model-endpoint" type="url" placeholder="https://provider.example/v1/chat/completions" /></label>
-        <label>Model ID<input id="model-id" type="text" placeholder="your-model-id" /></label>
-        <label>API key<input id="model-key" type="password" autocomplete="off" placeholder="Optional for a local endpoint" /></label>
+        <h3 data-zh="模型">Model</h3>
+        <p data-zh="框架不内置服务商或凭据。密钥仅保留在当前浏览器会话中，不会写入磁盘。">No provider or credential is bundled. The key remains in session storage and is never written to disk by PaperCase.</p>
+        <label><span data-zh="Chat Completions 接口">Chat-completions endpoint</span><input id="model-endpoint" type="url" placeholder="https://provider.example/v1/chat/completions" /></label>
+        <label><span data-zh="模型 ID">Model ID</span><input id="model-id" type="text" placeholder="your-model-id" /></label>
+        <label><span data-zh="API 密钥">API key</span><input id="model-key" type="password" autocomplete="off" placeholder="Optional for a local endpoint" data-placeholder-zh="本地接口可留空" /></label>
       </section>
       <section>
-        <h3>Role templates</h3>
+        <h3 data-zh="角色设置">Role templates</h3>
         <div class="role-grid">
-          <label>Human role name<input id="role-reader" type="text" value="Reader" /></label>
-          <label>Guide role name<input id="role-navigator" type="text" value="Navigator" /></label>
-          <label>Review role name<input id="role-reviewer" type="text" value="Reviewer" /></label>
+          <label><span data-zh="你的显示名">Human role name</span><input id="role-reader" type="text" value="Reader" /></label>
+          <label><span data-zh="引导员显示名">Guide role name</span><input id="role-navigator" type="text" value="Navigator" /></label>
+          <label><span data-zh="审阅者显示名">Review role name</span><input id="role-reviewer" type="text" value="Reviewer" /></label>
         </div>
-        <label>Guide instruction<textarea id="role-instruction" rows="5"></textarea></label>
+        <label><span data-zh="引导说明">Guide instruction</span><textarea id="role-instruction" rows="5"></textarea></label>
       </section>
-      <div class="settings-actions"><button id="clear-settings" class="danger-button" type="button">Clear model settings</button><button class="primary-button" type="submit">Save locally</button></div>
+      <div class="settings-actions"><button id="clear-settings" class="danger-button" type="button" data-zh="清除模型设置">Clear model settings</button><button class="primary-button" type="submit" data-zh="保存到本机">Save locally</button></div>
       <p id="settings-status" class="status" role="status"></p>
     </form>
   </dialog>

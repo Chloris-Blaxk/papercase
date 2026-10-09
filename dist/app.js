@@ -23,6 +23,26 @@ let paper = resources[activePaperId] || null;
 let chapterIndex = 0;
 let activePairId = null;
 let chatPending = false;
+let localConfig = {};
+
+function isChineseUI() { return String(localConfig.locale || "").toLowerCase().startsWith("zh"); }
+function ui(en, zh) { return isChineseUI() ? zh : en; }
+
+function applyLocalUI() {
+  if (!isChineseUI()) return;
+  document.documentElement.lang = "zh-CN";
+  document.querySelectorAll("[data-zh]").forEach(element => { element.textContent = element.dataset.zh; });
+  document.querySelectorAll("[data-placeholder-zh]").forEach(element => { element.placeholder = element.dataset.placeholderZh; });
+}
+
+async function loadLocalConfig() {
+  try {
+    const response = await fetch("./local-config.json", { cache: "no-store" });
+    if (!response.ok) return;
+    const value = await response.json();
+    if (value && typeof value === "object") localConfig = value;
+  } catch { /* optional local-only configuration */ }
+}
 
 function loadJson(storage, key, fallback) {
   try { return JSON.parse(storage.getItem(key) || "null") ?? fallback; }
@@ -119,11 +139,11 @@ function validatePaper(candidate) {
 function stateKey(suffix) { return paper ? `papercase:${paper.id}:${suffix}:v1` : ""; }
 function readingState() { return loadJson(localStorage, stateKey("reading"), { current: 0, completed: [] }); }
 function chatState() { return loadJson(localStorage, stateKey("chat"), {}); }
-function roles() { return { ...DEFAULT_ROLES, ...loadJson(localStorage, KEYS.roles, {}) }; }
+function roles() { return { ...DEFAULT_ROLES, ...(localConfig.roles || {}), ...loadJson(localStorage, KEYS.roles, {}) }; }
 function modelConfig() { return loadJson(localStorage, KEYS.model, { endpoint: "", model: "" }); }
 function allChapters() { return paper ? [...paper.body, ...(paper.appendices || [])] : []; }
 function currentChapter() { return allChapters()[chapterIndex]; }
-function sectionTag(chapter) { return chapter.sectionNumber ? `§ ${chapter.sectionNumber}` : "Unnumbered"; }
+function sectionTag(chapter) { return chapter.sectionNumber ? `§ ${chapter.sectionNumber}` : ui("Unnumbered", "未编号"); }
 
 function persistReading(next) {
   localStorage.setItem(stateKey("reading"), JSON.stringify(next));
@@ -131,7 +151,7 @@ function persistReading(next) {
 
 async function importPaper(file) {
   if (!file) return;
-  elements["import-status"].textContent = "Checking resource…";
+  elements["import-status"].textContent = ui("Checking resource…", "正在检查资源……");
   try {
     const next = validatePaper(JSON.parse(await file.text()));
     resources[next.id] = next;
@@ -141,10 +161,10 @@ async function importPaper(file) {
     paper = next;
     chapterIndex = 0;
     activePairId = null;
-    elements["import-status"].textContent = `Imported “${next.title}”.`;
+    elements["import-status"].textContent = ui(`Imported “${next.title}”.`, `已导入《${next.titleZh || next.title}》。`);
     render();
   } catch (error) {
-    elements["import-status"].textContent = error instanceof Error ? error.message : "Import failed.";
+    elements["import-status"].textContent = error instanceof Error ? error.message : ui("Import failed.", "导入失败。");
   }
 }
 
@@ -176,7 +196,7 @@ async function loadLocalLibrary() {
       if (!resources[activePaperId]) activePaperId = Object.keys(resources)[0];
       localStorage.setItem(KEYS.activePaper, activePaperId);
       paper = resources[activePaperId] || null;
-      elements["import-status"].textContent = `Loaded ${loaded} paper${loaded === 1 ? "" : "s"} from the local archive.`;
+      elements["import-status"].textContent = ui(`Loaded ${loaded} paper${loaded === 1 ? "" : "s"} from the local archive.`, `已从本地档案载入 ${loaded} 篇论文。`);
     }
     return loaded;
   } catch { return 0; }
@@ -186,7 +206,7 @@ function renderLibrary() {
   const entries = Object.values(resources);
   elements["paper-select"].innerHTML = entries.length
     ? entries.map(item => `<option value="${escapeHtml(item.id)}" ${item.id === activePaperId ? "selected" : ""}>${escapeHtml(item.titleZh || item.title)}</option>`).join("")
-    : `<option value="">No paper loaded</option>`;
+    : `<option value="">${ui("No paper loaded", "尚未载入论文")}</option>`;
 }
 
 function renderRoles() {
@@ -197,8 +217,8 @@ function renderRoles() {
 function renderMap() {
   const chapters = allChapters();
   const read = readingState();
-  elements["section-count"].textContent = `${paper?.body.length || 0} body sections`;
-  elements["section-map"].innerHTML = chapters.map((chapter, index) => `<li><button class="section-button ${index === chapterIndex ? "active" : ""}" type="button" data-section="${index}"><span class="number">${escapeHtml(chapter.sectionNumber || "—")}</span><span><strong>${escapeHtml(chapter.titleZh || chapter.titleEn)}</strong><small>${sectionTag(chapter)} · ${read.completed.includes(chapter.id) ? "read" : `${chapter.items.filter(item => item.type === "pair").length} pairs`}</small></span></button></li>`).join("");
+  elements["section-count"].textContent = ui(`${paper?.body.length || 0} body sections`, `正文 ${paper?.body.length || 0} 节`);
+  elements["section-map"].innerHTML = chapters.map((chapter, index) => `<li><button class="section-button ${index === chapterIndex ? "active" : ""}" type="button" data-section="${index}"><span class="number">${escapeHtml(chapter.sectionNumber || "—")}</span><span><strong>${escapeHtml(chapter.titleZh || chapter.titleEn)}</strong><small>${sectionTag(chapter)} · ${read.completed.includes(chapter.id) ? ui("read", "已读") : ui(`${chapter.items.filter(item => item.type === "pair").length} pairs`, `${chapter.items.filter(item => item.type === "pair").length} 段`)}</small></span></button></li>`).join("");
   elements["section-map"].querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", () => openChapter(Number(button.dataset.section))));
 }
 
@@ -213,31 +233,31 @@ function renderMetadata() {
   ].filter(Boolean).join(" · ");
   const identifiers = [publication.doi && `DOI ${publication.doi}`, publication.arxivId && `arXiv:${publication.arxivId}`].filter(Boolean);
   const links = [];
-  if (publication.sourceUrl) links.push(`<a href="${escapeHtml(publication.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open source record ↗</a>`);
-  if (publication.doi) links.push(`<a href="${escapeHtml(`https://doi.org/${publication.doi}`)}" target="_blank" rel="noopener noreferrer">Open DOI ↗</a>`);
-  if (publication.arxivId) links.push(`<a href="${escapeHtml(`https://arxiv.org/abs/${publication.arxivId}`)}" target="_blank" rel="noopener noreferrer">Open arXiv ↗</a>`);
+  if (publication.sourceUrl) links.push(`<a href="${escapeHtml(publication.sourceUrl)}" target="_blank" rel="noopener noreferrer">${ui("Open source record", "打开来源页面")} ↗</a>`);
+  if (publication.doi) links.push(`<a href="${escapeHtml(`https://doi.org/${publication.doi}`)}" target="_blank" rel="noopener noreferrer">${ui("Open DOI", "打开 DOI")} ↗</a>`);
+  if (publication.arxivId) links.push(`<a href="${escapeHtml(`https://arxiv.org/abs/${publication.arxivId}`)}" target="_blank" rel="noopener noreferrer">${ui("Open arXiv", "打开 arXiv")} ↗</a>`);
 
   elements["paper-title"].textContent = paper.title;
   elements["paper-title-translation"].textContent = paper.titleZh || "";
   elements["paper-title-translation"].hidden = !paper.titleZh;
-  elements["paper-authors"].textContent = authors || "Authors not supplied · 作者未提供";
+  elements["paper-authors"].textContent = authors || ui("Authors not supplied · 作者未提供", "作者未提供");
   elements["publication-type"].textContent = typeLabel;
   elements["publication-type"].dataset.type = publication.type || "missing";
-  elements["publication-source"].textContent = publication.source || "Not supplied · 未提供";
-  elements["publication-date"].textContent = publication.date || "Not supplied · 未提供";
+  elements["publication-source"].textContent = publication.source || ui("Not supplied · 未提供", "未提供");
+  elements["publication-date"].textContent = publication.date || ui("Not supplied · 未提供", "未提供");
   elements["publication-record"].textContent = [typeLabel, details].filter(Boolean).join(" · ");
-  elements["publication-identifier"].textContent = identifiers.join(" · ") || "Not supplied · 未提供";
+  elements["publication-identifier"].textContent = identifiers.join(" · ") || ui("Not supplied · 未提供", "未提供");
   elements["publication-links"].innerHTML = links.join("");
   const missing = [];
   if (!publication.type) missing.push("publication type");
   if (!publication.dateProvided) missing.push("publication date");
   if (!publication.source) missing.push("source");
   elements["metadata-warning"].hidden = missing.length === 0;
-  elements["metadata-warning"].textContent = missing.length ? `This resource is missing ${missing.join(", ")}. Ask the resource-generating agent to update its publication metadata.` : "";
+  elements["metadata-warning"].textContent = missing.length ? ui(`This resource is missing ${missing.join(", ")}. Ask the resource-generating agent to update its publication metadata.`, `该资源缺少部分发表信息，请让生成资源的 Agent 补充：${missing.join("、")}。`) : "";
 }
 
 function pairMarkup(item, chapter, order) {
-  return `<section class="pair" id="${escapeHtml(item.id)}"><div class="pair-marker"><span>¶ ${String(order).padStart(3, "0")}</span><button class="ask-button" type="button" data-pair="${escapeHtml(item.id)}">Discuss this passage</button></div><article class="language original"><header><strong>ORIGINAL</strong><span>${sectionTag(chapter)}</span></header><p lang="en">${formatText(item.en)}</p></article><article class="language translation"><header><strong>TRANSLATION</strong></header><p>${formatText(item.zh)}</p></article></section>`;
+  return `<section class="pair" id="${escapeHtml(item.id)}"><div class="pair-marker"><span>¶ ${String(order).padStart(3, "0")}</span><button class="ask-button" type="button" data-pair="${escapeHtml(item.id)}">${ui("Discuss this passage", `和${roles().navigator}讨论本段`)}</button></div><article class="language original"><header><strong>${ui("ORIGINAL", "原文")}</strong><span>${sectionTag(chapter)}</span></header><p lang="en">${formatText(item.en)}</p></article><article class="language translation"><header><strong>${ui("TRANSLATION", "译文")}</strong></header><p>${formatText(item.zh)}</p></article></section>`;
 }
 
 function itemMarkup(item, chapter, order) {
@@ -255,7 +275,7 @@ function renderPaper() {
   elements["paper-view"].hidden = !paper;
   elements.discussion.hidden = !paper;
   if (!paper) {
-    elements["progress-summary"].textContent = "No paper loaded";
+    elements["progress-summary"].textContent = ui("No paper loaded", "尚未载入论文");
     elements["section-map"].innerHTML = "";
     return;
   }
@@ -266,20 +286,20 @@ function renderPaper() {
   const bodyIndex = paper.body.findIndex(item => item.id === chapter.id);
   const isBody = bodyIndex >= 0;
   renderMetadata();
-  elements["reader-progress"].textContent = `${isBody ? `BODY ${String(bodyIndex + 1).padStart(2, "0")} / ${paper.body.length}` : "APPENDIX"} · PAPER ${sectionTag(chapter)}`;
+  elements["reader-progress"].textContent = `${isBody ? ui(`BODY ${String(bodyIndex + 1).padStart(2, "0")} / ${paper.body.length}`, `正文 ${String(bodyIndex + 1).padStart(2, "0")} / ${paper.body.length}`) : ui("APPENDIX", "附录")} · ${ui("PAPER", "论文")} ${sectionTag(chapter)}`;
   elements["chapter-title"].textContent = chapter.titleZh || chapter.titleEn;
   elements["chapter-title-en"].textContent = `${chapter.sectionNumber ? `${chapter.sectionNumber} ` : ""}${chapter.titleEn}`;
   elements["section-number"].textContent = chapter.sectionNumber || "—";
-  elements["guide-copy"].textContent = `${roles().navigator} keeps the source order visible. Discussion is optional and never blocks the next section.`;
-  elements["paper-location"].innerHTML = `<span>PAPER LOCATION · ${sectionTag(chapter)}</span><strong lang="en">${escapeHtml(`${chapter.sectionNumber ? `${chapter.sectionNumber} ` : ""}${chapter.titleEn}`)}</strong><small>${escapeHtml(chapter.titleZh || "")}</small>`;
+  elements["guide-copy"].textContent = ui(`${roles().navigator} keeps the source order visible. Discussion is optional and never blocks the next section.`, `${roles().navigator}会保留论文原始顺序；讨论完全可选，不会阻挡你继续阅读。`);
+  elements["paper-location"].innerHTML = `<span>${ui("PAPER LOCATION", "论文位置")} · ${sectionTag(chapter)}</span><strong lang="en">${escapeHtml(`${chapter.sectionNumber ? `${chapter.sectionNumber} ` : ""}${chapter.titleEn}`)}</strong><small>${escapeHtml(chapter.titleZh || "")}</small>`;
   let pairOrder = 0;
   for (const prior of chapters.slice(0, chapterIndex)) pairOrder += prior.items.filter(item => item.type === "pair").length;
   elements["paper-flow"].innerHTML = chapter.items.map(item => itemMarkup(item, chapter, item.type === "pair" ? ++pairOrder : pairOrder)).join("");
   elements["paper-flow"].querySelectorAll("[data-pair]").forEach(button => button.addEventListener("click", () => selectPair(button.dataset.pair)));
   elements["previous-section"].disabled = chapterIndex === 0;
-  elements["next-section"].textContent = chapterIndex === chapters.length - 1 ? "Mark read" : (read.completed.includes(chapter.id) ? "Continue" : "Mark read and continue");
+  elements["next-section"].textContent = chapterIndex === chapters.length - 1 ? ui("Mark read", "标记已读") : (read.completed.includes(chapter.id) ? ui("Continue", "继续") : ui("Mark read and continue", "标记已读并继续"));
   const completedBody = paper.body.filter(item => read.completed.includes(item.id)).length;
-  elements["progress-summary"].textContent = `${completedBody} / ${paper.body.length} body sections read`;
+  elements["progress-summary"].textContent = ui(`${completedBody} / ${paper.body.length} body sections read`, `正文已读 ${completedBody} / ${paper.body.length} 节`);
   if (!activePairId || !chapter.items.some(item => item.id === activePairId)) activePairId = chapter.items.find(item => item.type === "pair")?.id || null;
   renderChat();
 }
@@ -295,7 +315,7 @@ function findPair(id) {
 function renderChat() {
   const found = findPair(activePairId);
   if (!found) {
-    elements["chat-context"].textContent = "This section has no bilingual passage.";
+    elements["chat-context"].textContent = ui("This section has no bilingual passage.", "本节没有双语正文段落。");
     elements["chat-thread"].innerHTML = "";
     return;
   }
@@ -303,10 +323,10 @@ function renderChat() {
   elements["chat-context"].innerHTML = `<strong>${sectionTag(chapter)} · ${escapeHtml(chapter.titleEn)}</strong><br>${formatText(item.zh.slice(0, 180))}${item.zh.length > 180 ? "…" : ""}`;
   const messages = chatState()[item.id] || [];
   const roleNames = roles();
-  elements["chat-thread"].innerHTML = messages.length ? messages.map(message => `<article class="message ${message.role === "assistant" ? "assistant" : "user"}"><strong>${escapeHtml(message.role === "assistant" ? roleNames.navigator : roleNames.reader)}</strong>${formatText(message.content)}</article>`).join("") : `<p class="boundary">No discussion for this passage yet.</p>`;
+  elements["chat-thread"].innerHTML = messages.length ? messages.map(message => `<article class="message ${message.role === "assistant" ? "assistant" : "user"}"><strong>${escapeHtml(message.role === "assistant" ? roleNames.navigator : roleNames.reader)}</strong>${formatText(message.content)}</article>`).join("") : `<p class="boundary">${ui("No discussion for this passage yet.", "这一段还没有讨论记录。")}</p>`;
   elements["chat-thread"].scrollTop = elements["chat-thread"].scrollHeight;
   const config = modelConfig();
-  elements["chat-status"].textContent = chatPending ? "Waiting for model…" : (config.endpoint && config.model ? `${config.model} · settings stored locally` : "Configure a model to enable discussion.");
+  elements["chat-status"].textContent = chatPending ? ui("Waiting for model…", "正在等待模型……") : (config.endpoint && config.model ? ui(`${config.model} · settings stored locally`, `${config.model} · 设置保存在本机`) : ui("Configure a model to enable discussion.", "配置模型后即可开始讨论。"));
 }
 
 function selectPair(id) {
@@ -375,7 +395,7 @@ function saveSettings(event) {
   const key = elements["model-key"].value.trim();
   if (key) sessionStorage.setItem(KEYS.modelKey, key); else sessionStorage.removeItem(KEYS.modelKey);
   localStorage.setItem(KEYS.roles, JSON.stringify({ reader: elements["role-reader"].value.trim() || DEFAULT_ROLES.reader, navigator: elements["role-navigator"].value.trim() || DEFAULT_ROLES.navigator, reviewer: elements["role-reviewer"].value.trim() || DEFAULT_ROLES.reviewer, instruction: elements["role-instruction"].value.trim() || DEFAULT_ROLES.instruction }));
-  elements["settings-status"].textContent = "Saved in this browser.";
+  elements["settings-status"].textContent = ui("Saved in this browser.", "已保存到本机浏览器。");
   render();
 }
 
@@ -395,9 +415,11 @@ elements["next-section"].addEventListener("click", () => { const read = readingS
 elements["chat-form"].addEventListener("submit", async event => { event.preventDefault(); const question = elements["chat-input"].value.trim(); if (!question || chatPending) return; elements["chat-input"].value = ""; chatPending = true; renderChat(); try { await sendChat(question); } catch (error) { elements["chat-status"].textContent = error instanceof Error ? error.message : "Discussion failed."; } finally { chatPending = false; renderChat(); } });
 elements["open-settings"].addEventListener("click", openSettings);
 elements["settings-form"].addEventListener("submit", saveSettings);
-elements["clear-settings"].addEventListener("click", () => { localStorage.removeItem(KEYS.model); sessionStorage.removeItem(KEYS.modelKey); elements["model-endpoint"].value = ""; elements["model-id"].value = ""; elements["model-key"].value = ""; elements["settings-status"].textContent = "Model settings cleared."; render(); });
+elements["clear-settings"].addEventListener("click", () => { localStorage.removeItem(KEYS.model); sessionStorage.removeItem(KEYS.modelKey); elements["model-endpoint"].value = ""; elements["model-id"].value = ""; elements["model-key"].value = ""; elements["settings-status"].textContent = ui("Model settings cleared.", "模型设置已清除。"); render(); });
 
 async function initialize() {
+  await loadLocalConfig();
+  applyLocalUI();
   await loadLocalLibrary();
   render();
 }

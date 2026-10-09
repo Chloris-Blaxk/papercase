@@ -5,6 +5,7 @@ node_modules/
 !.env.example
 dist/papers/*
 !dist/papers/.gitkeep
+dist/local-config.json
 *.pdf
 *.key
 *.pem

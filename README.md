@@ -34,6 +34,23 @@ For a persistent local library, place resource files under `dist/papers/` and cr
 
 PaperCase loads this manifest at startup and refreshes matching browser-local resources by stable paper ID. Reading progress and discussions remain separate and are preserved. The manifest and its papers are excluded from Git, so this local archive is not published with the framework.
 
+## Local interface preferences
+
+An optional, Git-ignored `dist/local-config.json` can select the Chinese interface and local role display names without publishing personal preferences:
+
+```json
+{
+  "locale": "zh-CN",
+  "roles": {
+    "reader": "Reader",
+    "navigator": "Navigator",
+    "reviewer": "Reviewer"
+  }
+}
+```
+
+Omit the file to keep the public framework's English interface and generic role defaults. Browser-saved role edits continue to take precedence over this file.
+
 ## Optional model discussion
 
 Open **Settings → Model** in the browser and enter:
