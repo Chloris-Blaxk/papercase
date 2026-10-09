@@ -1,6 +1,6 @@
 # PaperCase
 
-PaperCase is a local-first browser framework for reading bilingual research papers in order without losing the feel of a conventional paper. It keeps the paper's own section numbers and headings visible, aligns original paragraphs with translations, places figures and equations inline, tracks reading progress, and optionally adds a model-powered discussion panel.
+PaperCase is a local-first browser framework for reading bilingual research papers in order without losing the feel of a conventional paper. It keeps the paper's publication record, section numbers, and headings visible, aligns original paragraphs with translations, places figures and equations inline, tracks reading progress, and optionally adds a model-powered discussion panel.
 
 This repository contains **only the browser framework**. It does not include papers, translations, figures, personal character settings, API keys, or model-provider accounts.
 
@@ -43,6 +43,8 @@ Their display names and instructions can be changed in Settings.
 ## Resource shape
 
 A resource contains paper metadata, ordered body sections, optional appendices, and section items of type `pair`, `equation`, or `asset`. Section numbers are strings so formats such as `3.2.1`, `A.3`, or an unnumbered `null` remain faithful to the source.
+
+The `publication` record is required for newly generated resources. It identifies whether the item is a preprint, journal article, conference paper, workshop paper, book chapter, thesis, report, or another publication type. It also records the publication or first-public-release date and the source venue. DOI, arXiv ID, volume, issue, pages, and a source URL are optional. Older browser-stored resources still open, but the reader displays a visible warning when type, date, or source is missing.
 
 The JSON Schema is the format contract. The template contains synthetic placeholder text only; it is not a paper resource.
 

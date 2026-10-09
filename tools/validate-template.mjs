@@ -2,6 +2,8 @@ import fs from "node:fs";
 
 const paper = JSON.parse(fs.readFileSync(new URL("../examples/paper.template.json", import.meta.url)));
 if (paper.version !== 1 || !paper.id || !paper.title || !Array.isArray(paper.body)) throw new Error("Invalid template metadata");
+if (!paper.publication || !["preprint", "journal", "conference", "workshop", "book-chapter", "thesis", "report", "other"].includes(paper.publication.type)) throw new Error("Invalid publication type");
+if (!paper.publication.date || !paper.publication.source) throw new Error("Publication date and source are required");
 for (const chapter of [...paper.body, ...(paper.appendices || [])]) {
   if (!chapter.id || !chapter.titleEn || !Array.isArray(chapter.items)) throw new Error(`Invalid chapter ${chapter.id || "unknown"}`);
   for (const item of chapter.items) {

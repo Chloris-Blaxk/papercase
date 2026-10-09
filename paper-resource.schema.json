@@ -3,19 +3,42 @@
   "$id": "https://example.invalid/papercase/paper-resource.schema.json",
   "title": "PaperCase resource",
   "type": "object",
-  "required": ["version", "id", "title", "body"],
+  "required": ["version", "id", "title", "publication", "body"],
   "properties": {
     "version": { "const": 1 },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,80}$" },
     "title": { "type": "string", "minLength": 1 },
     "titleZh": { "type": "string" },
-    "authors": { "type": "string" },
+    "authors": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      ]
+    },
     "year": { "type": ["integer", "string"] },
+    "publication": { "$ref": "#/$defs/publication" },
     "body": { "$ref": "#/$defs/chapters" },
     "appendices": { "$ref": "#/$defs/chapters" }
   },
   "additionalProperties": true,
   "$defs": {
+    "publication": {
+      "type": "object",
+      "required": ["type", "date", "source"],
+      "properties": {
+        "type": { "enum": ["preprint", "journal", "conference", "workshop", "book-chapter", "thesis", "report", "other"] },
+        "date": { "type": "string", "minLength": 4, "description": "Publication or first public release date, preferably YYYY-MM-DD." },
+        "source": { "type": "string", "minLength": 1, "description": "Journal, conference, workshop, preprint server, repository, or publisher." },
+        "venue": { "type": "string" },
+        "sourceUrl": { "type": "string", "format": "uri", "pattern": "^https?://" },
+        "doi": { "type": "string" },
+        "arxivId": { "type": "string" },
+        "volume": { "type": ["string", "integer"] },
+        "issue": { "type": ["string", "integer"] },
+        "pages": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
     "chapters": {
       "type": "array",
       "items": { "$ref": "#/$defs/chapter" }

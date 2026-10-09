@@ -4,8 +4,18 @@
   "id": "replace-with-a-stable-id",
   "title": "Paper title",
   "titleZh": "论文标题",
-  "authors": "Author names",
+  "authors": ["First Author", "Second Author"],
   "year": 2026,
+  "publication": {
+    "type": "conference",
+    "date": "2026-05-18",
+    "source": "Example Conference on Research Interfaces",
+    "venue": "ECRI 2026",
+    "sourceUrl": "https://example.org/papers/replace-with-a-stable-id",
+    "doi": "10.0000/example.2026.001",
+    "arxivId": "2601.00001",
+    "pages": "1-12"
+  },
   "body": [
     {
       "id": "section-01",

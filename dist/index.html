@@ -51,6 +51,26 @@
       </div>
 
       <article id="paper-view" hidden>
+        <section class="paper-dossier" aria-labelledby="paper-title">
+          <div class="dossier-heading">
+            <div>
+              <span class="eyebrow">PUBLICATION RECORD · 发表信息</span>
+              <h2 id="paper-title"></h2>
+              <p id="paper-title-translation" class="paper-title-translation"></p>
+            </div>
+            <span id="publication-type" class="publication-type"></span>
+          </div>
+          <p id="paper-authors" class="paper-authors"></p>
+          <dl class="metadata-grid">
+            <div><dt>Source · 来源</dt><dd id="publication-source"></dd></div>
+            <div><dt>Published · 发布时间</dt><dd id="publication-date"></dd></div>
+            <div><dt>Record · 收录类型</dt><dd id="publication-record"></dd></div>
+            <div><dt>Identifier · 标识</dt><dd id="publication-identifier"></dd></div>
+          </dl>
+          <div id="publication-links" class="publication-links"></div>
+          <p id="metadata-warning" class="metadata-warning" hidden></p>
+        </section>
+
         <header class="paper-header">
           <div><span id="reader-progress" class="eyebrow"></span><h2 id="chapter-title"></h2><p id="chapter-title-en" lang="en"></p></div>
           <div class="section-seal"><strong id="section-number"></strong><span>PAPER SECTION</span></div>

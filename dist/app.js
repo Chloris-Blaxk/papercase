@@ -14,7 +14,7 @@ const DEFAULT_ROLES = {
 };
 
 const elements = Object.fromEntries([
-  "paper-import", "paper-select", "import-status", "progress-summary", "section-count", "section-map", "reader", "empty-state", "paper-view", "reader-progress", "chapter-title", "chapter-title-en", "section-number", "guide-badge", "guide-copy", "paper-location", "paper-flow", "previous-section", "next-section", "discussion", "discussion-reader", "discussion-guide", "chat-context", "chat-thread", "chat-form", "chat-input", "chat-status", "open-settings", "settings-dialog", "settings-form", "model-endpoint", "model-id", "model-key", "role-reader", "role-navigator", "role-reviewer", "role-instruction", "clear-settings", "settings-status", "navigator-name", "reviewer-name", "reader-name"
+  "paper-import", "paper-select", "import-status", "progress-summary", "section-count", "section-map", "reader", "empty-state", "paper-view", "paper-title", "paper-title-translation", "paper-authors", "publication-type", "publication-source", "publication-date", "publication-record", "publication-identifier", "publication-links", "metadata-warning", "reader-progress", "chapter-title", "chapter-title-en", "section-number", "guide-badge", "guide-copy", "paper-location", "paper-flow", "previous-section", "next-section", "discussion", "discussion-reader", "discussion-guide", "chat-context", "chat-thread", "chat-form", "chat-input", "chat-status", "open-settings", "settings-dialog", "settings-form", "model-endpoint", "model-id", "model-key", "role-reader", "role-navigator", "role-reviewer", "role-instruction", "clear-settings", "settings-status", "navigator-name", "reviewer-name", "reader-name"
 ].map(id => [id, document.getElementById(id)]));
 
 let resources = loadJson(localStorage, KEYS.resources, {});
@@ -54,6 +54,46 @@ function formatText(value) {
     text = text.replace(entry.token, rendered);
   }
   return text;
+}
+
+const PUBLICATION_TYPE_LABELS = {
+  preprint: "PREPRINT · 预印本",
+  journal: "JOURNAL · 期刊",
+  conference: "CONFERENCE · 会议",
+  workshop: "WORKSHOP · 研讨会",
+  "book-chapter": "BOOK CHAPTER · 书籍章节",
+  thesis: "THESIS · 学位论文",
+  report: "REPORT · 报告",
+  other: "OTHER · 其他"
+};
+
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch { return ""; }
+}
+
+function authorLine(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+  return String(value || "").trim();
+}
+
+function publicationInfo() {
+  const value = paper?.publication || {};
+  return {
+    type: value.type || "",
+    date: value.date || (paper?.year ? String(paper.year) : ""),
+    dateProvided: Boolean(value.date),
+    source: value.source || value.venue || "",
+    venue: value.venue || "",
+    sourceUrl: safeHttpUrl(value.sourceUrl),
+    doi: String(value.doi || "").replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, "").trim(),
+    arxivId: String(value.arxivId || "").trim(),
+    volume: String(value.volume || "").trim(),
+    issue: String(value.issue || "").trim(),
+    pages: String(value.pages || "").trim()
+  };
 }
 
 function validatePaper(candidate) {
@@ -128,6 +168,40 @@ function renderMap() {
   elements["section-map"].querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", () => openChapter(Number(button.dataset.section))));
 }
 
+function renderMetadata() {
+  const publication = publicationInfo();
+  const typeLabel = PUBLICATION_TYPE_LABELS[publication.type] || "TYPE NOT SUPPLIED · 类型未提供";
+  const authors = authorLine(paper.authors);
+  const details = [
+    publication.volume && `Vol. ${publication.volume}`,
+    publication.issue && `No. ${publication.issue}`,
+    publication.pages && `pp. ${publication.pages}`
+  ].filter(Boolean).join(" · ");
+  const identifiers = [publication.doi && `DOI ${publication.doi}`, publication.arxivId && `arXiv:${publication.arxivId}`].filter(Boolean);
+  const links = [];
+  if (publication.sourceUrl) links.push(`<a href="${escapeHtml(publication.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open source record ↗</a>`);
+  if (publication.doi) links.push(`<a href="${escapeHtml(`https://doi.org/${publication.doi}`)}" target="_blank" rel="noopener noreferrer">Open DOI ↗</a>`);
+  if (publication.arxivId) links.push(`<a href="${escapeHtml(`https://arxiv.org/abs/${publication.arxivId}`)}" target="_blank" rel="noopener noreferrer">Open arXiv ↗</a>`);
+
+  elements["paper-title"].textContent = paper.title;
+  elements["paper-title-translation"].textContent = paper.titleZh || "";
+  elements["paper-title-translation"].hidden = !paper.titleZh;
+  elements["paper-authors"].textContent = authors || "Authors not supplied · 作者未提供";
+  elements["publication-type"].textContent = typeLabel;
+  elements["publication-type"].dataset.type = publication.type || "missing";
+  elements["publication-source"].textContent = publication.source || "Not supplied · 未提供";
+  elements["publication-date"].textContent = publication.date || "Not supplied · 未提供";
+  elements["publication-record"].textContent = [typeLabel, details].filter(Boolean).join(" · ");
+  elements["publication-identifier"].textContent = identifiers.join(" · ") || "Not supplied · 未提供";
+  elements["publication-links"].innerHTML = links.join("");
+  const missing = [];
+  if (!publication.type) missing.push("publication type");
+  if (!publication.dateProvided) missing.push("publication date");
+  if (!publication.source) missing.push("source");
+  elements["metadata-warning"].hidden = missing.length === 0;
+  elements["metadata-warning"].textContent = missing.length ? `This resource is missing ${missing.join(", ")}. Ask the resource-generating agent to update its publication metadata.` : "";
+}
+
 function pairMarkup(item, chapter, order) {
   return `<section class="pair" id="${escapeHtml(item.id)}"><div class="pair-marker"><span>¶ ${String(order).padStart(3, "0")}</span><button class="ask-button" type="button" data-pair="${escapeHtml(item.id)}">Discuss this passage</button></div><article class="language original"><header><strong>ORIGINAL</strong><span>${sectionTag(chapter)}</span></header><p lang="en">${formatText(item.en)}</p></article><article class="language translation"><header><strong>TRANSLATION</strong></header><p>${formatText(item.zh)}</p></article></section>`;
 }
@@ -157,6 +231,7 @@ function renderPaper() {
   const chapter = currentChapter();
   const bodyIndex = paper.body.findIndex(item => item.id === chapter.id);
   const isBody = bodyIndex >= 0;
+  renderMetadata();
   elements["reader-progress"].textContent = `${isBody ? `BODY ${String(bodyIndex + 1).padStart(2, "0")} / ${paper.body.length}` : "APPENDIX"} · PAPER ${sectionTag(chapter)}`;
   elements["chapter-title"].textContent = chapter.titleZh || chapter.titleEn;
   elements["chapter-title-en"].textContent = `${chapter.sectionNumber ? `${chapter.sectionNumber} ` : ""}${chapter.titleEn}`;
@@ -218,7 +293,9 @@ function openChapter(index) {
 }
 
 function fullPaperContext() {
-  return allChapters().map(chapter => [`[${sectionTag(chapter)} ${chapter.titleEn}]`, ...chapter.items.map(item => item.type === "pair" ? `EN: ${item.en}\nZH: ${item.zh}` : item.type === "equation" ? `EQUATION: ${item.tex}` : `${item.kind || "Asset"} ${item.number || ""}: ${item.captionEn || ""} / ${item.captionZh || ""}`)].join("\n")).join("\n\n");
+  const publication = publicationInfo();
+  const metadata = [`TITLE: ${paper.title}`, paper.titleZh && `TITLE_ZH: ${paper.titleZh}`, authorLine(paper.authors) && `AUTHORS: ${authorLine(paper.authors)}`, publication.type && `PUBLICATION_TYPE: ${publication.type}`, publication.date && `PUBLICATION_DATE: ${publication.date}`, publication.source && `SOURCE: ${publication.source}`, publication.doi && `DOI: ${publication.doi}`, publication.arxivId && `ARXIV: ${publication.arxivId}`].filter(Boolean).join("\n");
+  return `${metadata}\n\n${allChapters().map(chapter => [`[${sectionTag(chapter)} ${chapter.titleEn}]`, ...chapter.items.map(item => item.type === "pair" ? `EN: ${item.en}\nZH: ${item.zh}` : item.type === "equation" ? `EQUATION: ${item.tex}` : `${item.kind || "Asset"} ${item.number || ""}: ${item.captionEn || ""} / ${item.captionZh || ""}`)].join("\n")).join("\n\n")}`;
 }
 
 async function sendChat(question) {
